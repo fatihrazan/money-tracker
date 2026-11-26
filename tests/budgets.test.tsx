@@ -169,7 +169,8 @@ test('budget page saves a limit, refreshes totals, and fetches the selected mont
       limits.set(new URL(path, 'http://localhost').searchParams.get('month')!, body[0].budget);
       return Response.json({ data: { message: 'Anggaran disimpan.' } });
     }
-    const selectedMonth = new URL(path, 'http://localhost').searchParams.get('month')!;
+    const params = new URL(path, 'http://localhost').searchParams;
+    const selectedMonth = params.get('month')!;
     const data: Snapshot = {
       user: { id: userId, username: 'test' },
       month: selectedMonth,
@@ -178,7 +179,7 @@ test('budget page saves a limit, refreshes totals, and fetches the selected mont
         {
           ...food,
           budget: limits.get(selectedMonth) ?? food.budget,
-          spent: selectedMonth === current ? 125000 : 50000,
+          spent: params.has('start') ? 250000 : selectedMonth === current ? 125000 : 50000,
         },
         travel,
       ],
@@ -254,6 +255,18 @@ test('budget page saves a limit, refreshes totals, and fetches the selected mont
     month: current,
     range: { start: '2026-10-23', end: '2026-11-23' },
   });
+  assert.ok(card.getByText('Rp350.000'));
+  view.unmount();
+  requests.length = 0;
+  view = mount('dashboard');
+  const dashboardBudget = within(await screen.findByRole('article', { name: 'Anggaran Makan' }));
+  assert.ok(dashboardBudget.getByText('Rp350.000'));
+  assert.ok(screen.getByText('23 Oktober 2026 – 23 November 2026'));
+  assert.ok(screen.getByText(`Arus uang · ${monthLabel(current)}`));
+  assert.deepEqual(requests, [
+    `/api/v1/snapshot?month=${current}&view=dashboard`,
+    `/api/v1/snapshot?month=${current}&start=2026-10-23&end=2026-11-23&view=budgets`,
+  ]);
   view.unmount();
   requests.length = 0;
   view = mount();
@@ -278,6 +291,17 @@ test('budget page saves a limit, refreshes totals, and fetches the selected mont
   await waitFor(() =>
     assert.equal(requests.at(-1), `/api/v1/snapshot?month=${previous}&view=budgets`),
   );
+  view.unmount();
+  requests.length = 0;
+  view = mount('dashboard');
+  assert.ok(
+    within(await screen.findByRole('article', { name: 'Anggaran Makan' })).getByText('Rp450.000'),
+  );
+  assert.ok(screen.getByText(monthLabel(previous)));
+  assert.deepEqual(requests, [
+    `/api/v1/snapshot?month=${current}&view=dashboard`,
+    `/api/v1/snapshot?month=${previous}&view=budgets`,
+  ]);
   view.unmount();
   view = mount('categories');
   await screen.findByRole('article', { name: 'Anggaran Makan' });

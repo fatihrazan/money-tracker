@@ -46,6 +46,26 @@ import { SwipeCategory } from './swipe-category';
 const api = createClient();
 const budgetPeriodSchema = z.object({ month: monthSchema, range: dateRangeSchema.optional() });
 const budgetPeriodKey = (userId: string) => `money-budget-period:${userId}`;
+function readBudgetPeriod(userId: string) {
+  try {
+    const stored = localStorage.getItem(budgetPeriodKey(userId));
+    return budgetPeriodSchema.safeParse(stored ? JSON.parse(stored) : null).data;
+  } catch {
+    // Keep the default period when browser storage is unavailable or invalid.
+  }
+}
+function budgetPeriodLabel(month: string, range?: DateRange) {
+  if (!range) return monthLabel(month);
+  const format = new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+  return [range.start, range.end]
+    .map((date) => format.format(new Date(`${date}T00:00:00Z`)))
+    .join(' – ');
+}
 const titles: Record<string, string> = {
   dashboard: 'Beranda',
   transactions: 'Transaksi',
@@ -104,18 +124,7 @@ export function Workspace({ section }: { section: string }) {
   const cursor = pages.at(-1);
   const effectiveMonth = budgetRange?.end.slice(0, 7) ?? month;
   const selectedRange = ['budgets', 'categories'].includes(section) ? budgetRange : undefined;
-  const periodLabel = selectedRange
-    ? [selectedRange.start, selectedRange.end]
-        .map((date) =>
-          new Intl.DateTimeFormat('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            timeZone: 'UTC',
-          }).format(new Date(`${date}T00:00:00Z`)),
-        )
-        .join(' – ')
-    : monthLabel(month);
+  const periodLabel = budgetPeriodLabel(month, selectedRange);
   useEffect(() => {
     setAccount(accountFromUrl);
     setPages([]);
@@ -125,6 +134,10 @@ export function Workspace({ section }: { section: string }) {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
+  const [dashboardBudget, setDashboardBudget] = useState<{
+    label: string;
+    categories: Category[];
+  }>();
   const [editor, setEditor] = useState<Editor>(),
     [quick, setQuick] = useState<Snapshot['quick_fills'][number]>(),
     [formKey, setFormKey] = useState(0),
@@ -194,29 +207,40 @@ export function Workspace({ section }: { section: string }) {
     setError('');
     api
       .snapshot(selectedMonth, selectedAccount, selectedRange, section)
-      .then((d) => {
+      .then(async (d) => {
         if (!active) return;
+        if (section === 'dashboard') {
+          setData(d);
+          const saved = readBudgetPeriod(d.user.id);
+          const budgetMonth = saved?.month ?? selectedMonth;
+          const range = saved?.range;
+          const budget =
+            range || budgetMonth !== selectedMonth
+              ? await api.snapshot(budgetMonth, '', range, 'budgets')
+              : d;
+          if (active)
+            setDashboardBudget({
+              label: budgetPeriodLabel(budgetMonth, range),
+              categories: budget.categories,
+            });
+          return;
+        }
         const context = `${d.user.id}:${section}`;
         if (periodContext.current !== context) {
           periodContext.current = context;
           if (['budgets', 'categories'].includes(section)) {
-            try {
-              const stored = localStorage.getItem(budgetPeriodKey(d.user.id));
-              const saved = budgetPeriodSchema.safeParse(stored ? JSON.parse(stored) : null);
-              if (saved.success) {
-                const { month: savedMonth, range } = saved.data;
-                if (
-                  savedMonth !== month ||
-                  range?.start !== budgetRange?.start ||
-                  range?.end !== budgetRange?.end
-                ) {
-                  setMonth(savedMonth);
-                  setBudgetRange(range);
-                  return;
-                }
+            const saved = readBudgetPeriod(d.user.id);
+            if (saved) {
+              const { month: savedMonth, range } = saved;
+              if (
+                savedMonth !== month ||
+                range?.start !== budgetRange?.start ||
+                range?.end !== budgetRange?.end
+              ) {
+                setMonth(savedMonth);
+                setBudgetRange(range);
+                return;
               }
-            } catch {
-              // Keep the default period when browser storage is unavailable or invalid.
             }
           }
         }
@@ -496,10 +520,13 @@ export function Workspace({ section }: { section: string }) {
               </div>
               <section className="card">
                 <div className="section-head">
-                  <h2>Anggaran {monthLabel(data.month)}</h2>
+                  <div>
+                    <h2>Anggaran</h2>
+                    {dashboardBudget && <p className="muted">{dashboardBudget.label}</p>}
+                  </div>
                   <Link href="/budgets">Kelola anggaran ↗</Link>
                 </div>
-                <BudgetOverview categories={data.categories} />
+                {dashboardBudget && <BudgetOverview categories={dashboardBudget.categories} />}
               </section>
             </>
           )}
