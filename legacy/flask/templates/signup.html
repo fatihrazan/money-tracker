@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% from '_auth_fields.html' import username_field, password_field %}
+{% block title %}Daftar · Money Tracker{% endblock %}
+{% block content %}
+  <div class="auth">
+    <section class="hero auth-hero">
+      <span class="auth-badge">{{ icon('sparkle', 24) }}</span>
+      <h1>Buat akun</h1>
+      <p>Satu akun untuk semua perangkatmu. Data tersimpan di server ini, bukan di HP.</p>
+    </section>
+    {% if first_user %}
+      <div class="callout">
+        {{ icon('sparkle', 20) }}
+        <div><strong>Akun pertama:</strong> semua data yang sudah tercatat di aplikasi ini akan menjadi milik akun ini.</div>
+      </div>
+    {% endif %}
+    <section class="card">
+      <form method="post" class="stack" data-native>
+        {{ username_field(username, hint=true) }}
+        {{ password_field('password', 'Kata sandi (minimal 8 karakter)', 'new-password') }}
+        {{ password_field('confirm', 'Ulangi kata sandi', 'new-password') }}
+        <button class="btn btn-primary btn-block">Buat akun</button>
+      </form>
+      <p class="auth-switch">Sudah punya akun? <a href="{{ url_for('auth.login') }}" data-native>Masuk</a></p>
+    </section>
+  </div>
+{% endblock %}

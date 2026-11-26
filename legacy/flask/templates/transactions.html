@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% block title %}Transaksi · Money Tracker{% endblock %}
+{% block content %}
+  <section class="card">
+    <div class="month-nav">
+      <a class="btn btn-icon" href="{{ url_for('main.transactions', month=prev_month, account=account_id) }}" aria-label="Bulan sebelumnya">{{ icon('chev-left') }}</a>
+      <h2>{{ month|month_label }}</h2>
+      <a class="btn btn-icon" href="{{ url_for('main.transactions', month=next_month, account=account_id) }}" aria-label="Bulan berikutnya">{{ icon('chev-right') }}</a>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat stat-in"><span class="stat-icon">{{ icon('arrow-up', 16) }}</span><span><small>Pemasukan</small><strong class="pos">{{ summary.income|rupiah }}</strong></span></div>
+      <div class="stat stat-out"><span class="stat-icon">{{ icon('arrow-down', 16) }}</span><span><small>Pengeluaran</small><strong class="neg">{{ summary.expense|rupiah }}</strong></span></div>
+    </div>
+
+    <form method="get" class="filter">
+      <input type="hidden" name="month" value="{{ month }}">
+      <label class="field">
+        <span>Akun</span>
+        <select name="account" data-autosubmit>
+          <option value="">Semua akun</option>
+          {% for a in accounts %}
+            <option value="{{ a.id }}" {% if a.id == account_id %}selected{% endif %}>{{ a.name }}{% if a.archived %} (arsip){% endif %}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <noscript><button class="btn">Terapkan</button></noscript>
+    </form>
+  </section>
+
+  <section class="card">
+    {% if txs %}
+      {% include '_tx_list.html' %}
+    {% else %}
+      <div class="empty">{{ icon('inbox', 32) }}<p>Tidak ada transaksi di bulan ini.</p></div>
+    {% endif %}
+  </section>
+{% endblock %}

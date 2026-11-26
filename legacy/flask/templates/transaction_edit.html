@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% block title %}Ubah transaksi · Money Tracker{% endblock %}
+{% block content %}
+  <a class="back" href="{{ url_for('main.transactions') }}">{{ icon('chev-left', 16) }}Transaksi</a>
+  <section class="card">
+    <div class="section-head"><h2>Ubah transaksi</h2></div>
+    {% if tx.kind == 'adjustment' %}
+      <p>Penyesuaian saldo <strong>{{ tx.account_name }}</strong> sebesar
+        <strong>{{ '+' if tx.amount > 0 }}{{ tx.amount|rupiah }}</strong> pada {{ tx.date|tanggal }}.</p>
+      <p class="muted">{{ tx.note }}</p>
+      <p class="muted">Penyesuaian tidak bisa diubah. Hapus lalu cocokkan saldo lagi kalau perlu.</p>
+    {% else %}
+      {% with action=url_for('main.edit_transaction', tx_id=tx.id), submit_label='Simpan perubahan' %}
+        {% include '_tx_form.html' %}
+      {% endwith %}
+    {% endif %}
+  </section>
+
+  <form method="post" action="{{ url_for('main.delete_transaction', tx_id=tx.id) }}"
+        data-confirm="Hapus transaksi ini?" class="danger-zone">
+    <button type="submit" class="btn btn-ghost-danger">{{ icon('trash', 16) }}Hapus transaksi</button>
+  </form>
+{% endblock %}

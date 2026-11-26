@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: money_tracker
+      POSTGRES_USER: money
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-money_dev_only}
+    ports:
+      - '127.0.0.1:5433:5432'
+    volumes:
+      - money_postgres:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U money -d money_tracker']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  money_postgres:

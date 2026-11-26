@@ -1,0 +1,11 @@
+{
+  "name": "@money/database",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@money/core": "*",
+    "pg": "^8.16.0"
+  }
+}

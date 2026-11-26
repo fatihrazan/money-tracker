@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% block title %}Cocokkan saldo · Money Tracker{% endblock %}
+{% block content %}
+  <a class="back" href="{{ url_for('main.accounts') }}">{{ icon('chev-left', 16) }}Akun</a>
+  <section class="card">
+    <div class="section-head"><h2>Cocokkan saldo {{ account.name }}</h2></div>
+    <div class="stat-box">
+      <small>Saldo menurut catatan</small>
+      <strong>{{ account.balance|rupiah }}</strong>
+    </div>
+    <p class="muted">Buka aplikasi {{ account.name }}, lalu masukkan saldo yang tertera di sana.
+      Selisihnya dicatat sebagai penyesuaian, dan tidak dihitung sebagai pemasukan atau pengeluaran.</p>
+    <form method="post" class="stack">
+      <label class="field field-amount">
+        <span>Saldo asli sekarang</span>
+        <div class="amount-wrap">
+          <b aria-hidden="true">Rp</b>
+          <input name="actual" required autocomplete="off" autofocus data-amount placeholder="contoh: 143.500">
+        </div>
+        <small class="amount-preview"></small>
+      </label>
+      <button class="btn btn-primary btn-block">Cocokkan</button>
+    </form>
+  </section>
+{% endblock %}

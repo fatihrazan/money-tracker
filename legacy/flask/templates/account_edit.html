@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% block title %}Ubah akun · Money Tracker{% endblock %}
+{% block content %}
+  <a class="back" href="{{ url_for('main.accounts') }}">{{ icon('chev-left', 16) }}Akun</a>
+  <section class="card">
+    <div class="section-head"><h2>Ubah akun {{ account.name }}</h2></div>
+    <form method="post" class="stack">
+      <div class="row">
+        <label class="field grow"><span>Nama</span>
+          <input name="name" value="{{ form.get('name', '') }}" required maxlength="50">
+        </label>
+        <label class="field"><span>Jenis</span>
+          <select name="type">
+            {% for value, label in ACCOUNT_TYPES.items() %}
+              <option value="{{ value }}" {% if form.get('type') == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <label class="field">
+        <span>Saldo awal</span>
+        <input name="initial_balance" value="{{ form.get('initial_balance', '') }}" autocomplete="off" data-amount>
+        <small class="amount-preview"></small>
+        <small class="muted">Saldo sebelum transaksi pertama yang kamu catat. Kalau saldo sekarang
+          tidak cocok, pakai <a href="{{ url_for('main.reconcile_account', account_id=account.id) }}">Cocokkan saldo</a>.</small>
+      </label>
+      <button class="btn btn-primary btn-block">Simpan</button>
+    </form>
+  </section>
+
+  {% if not account.archived %}
+    <form method="post" action="{{ url_for('main.toggle_archive', account_id=account.id) }}"
+          data-confirm="Arsipkan akun {{ account.name }}? Riwayat transaksinya tetap tersimpan." class="danger-zone">
+      <button class="btn btn-ghost-danger">Arsipkan akun</button>
+    </form>
+  {% endif %}
+{% endblock %}

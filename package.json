@@ -1,0 +1,54 @@
+{
+  "name": "money-tracker",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.20.0"
+  },
+  "scripts": {
+    "postinstall": "node scripts/prepare-ocr.mjs",
+    "ocr:prepare": "node scripts/prepare-ocr.mjs",
+    "dev": "npm run dev --workspace @money/web",
+    "build": "npm run build --workspace @money/web",
+    "start": "npm run start --workspace @money/web",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/core.test.ts tests/photo.test.ts tests/email.test.ts tests/telegram.test.ts",
+    "test:ui": "tsx --test tests/ui.test.tsx tests/budgets.test.tsx tests/email-ui.test.tsx",
+    "test:ocr": "tsx --test tests/ocr.test.ts",
+    "test:db": "node scripts/test-postgres.mjs",
+    "test:integration": "tsx --test tests/integration/finance.test.ts tests/integration/gmail.test.ts tests/integration/telegram.test.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
+    "gmail:sync": "tsx --env-file-if-exists=.env scripts/gmail-worker.ts --once",
+    "gmail:worker": "tsx --env-file-if-exists=.env scripts/gmail-worker.ts",
+    "db:import": "tsx --env-file-if-exists=.env scripts/import-sqlite.ts",
+    "format": "prettier --write apps packages scripts tests docs README.md package.json tsconfig.json compose.yaml .prettierrc",
+    "telegram:worker": "tsx --env-file-if-exists=.env scripts/telegram-worker.ts",
+    "deploy:prepare": "node scripts/prepare-production.mjs",
+    "db:migrate:production": "tsx --env-file=.env.production scripts/migrate-production.ts",
+    "telegram:webhook": "tsx --env-file=.env.production scripts/telegram-webhook.ts",
+    "deploy:check": "node scripts/check-production.mjs",
+    "deploy:login": "npx --yes --package=node@22 --package=netlify-cli@27.16.2 netlify login --filter @money/web",
+    "deploy:build": "npx --yes --package=node@22 --package=netlify-cli@27.16.2 netlify build --offline --filter @money/web",
+    "deploy:netlify": "npx --yes --package=node@22 --package=netlify-cli@27.16.2 netlify deploy --build --prod --filter @money/web"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/html-to-text": "^9.0.4",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^27.4.0",
+    "prettier": "^3.9.10",
+    "sharp": "^0.35.5",
+    "tsx": "^4.0.0",
+    "typescript": "^5.9.0"
+  }
+}

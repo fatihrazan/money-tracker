@@ -1,0 +1,36 @@
+{# Transactions grouped by day. Expects: txs. #}
+{% from '_icons.html' import icon %}
+{% for day, items in txs|groupby('date')|reverse %}
+  <h3 class="day">{{ day|day_header }}</h3>
+  <ul class="tx-list">
+    {% for t in items %}
+      {% set tone = t.kind if t.kind != 'adjustment' else ('income' if t.amount > 0 else 'expense') %}
+      <li>
+        <a class="tx" href="{{ url_for('main.edit_transaction', tx_id=t.id) }}">
+          <span class="tx-icon tone-{{ 'adjust' if t.kind == 'adjustment' else t.kind }}">
+            {{ icon({'expense': 'arrow-down', 'income': 'arrow-up', 'transfer': 'swap', 'adjustment': 'scale'}[t.kind], 18) }}
+          </span>
+          <span class="tx-main">
+            <span class="tx-title">
+              {% if t.kind == 'transfer' %}{{ t.account_name }} → {{ t.to_account_name }}
+              {% elif t.kind == 'adjustment' %}Penyesuaian saldo
+              {% else %}{{ t.category_name }}{% endif %}
+            </span>
+            <span class="tx-sub">
+              {% if t.note %}{{ t.note }} · {% endif %}{{ 'Transfer' if t.kind == 'transfer' else t.account_name }}
+            </span>
+          </span>
+          {% if t.kind == 'expense' %}
+            <span class="amount neg">-{{ t.amount|rupiah }}</span>
+          {% elif t.kind == 'income' %}
+            <span class="amount pos">+{{ t.amount|rupiah }}</span>
+          {% elif t.kind == 'adjustment' %}
+            <span class="amount {{ 'pos' if t.amount > 0 else 'neg' }}">{{ '+' if t.amount > 0 }}{{ t.amount|rupiah }}</span>
+          {% else %}
+            <span class="amount">{{ t.amount|rupiah }}</span>
+          {% endif %}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endfor %}

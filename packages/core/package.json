@@ -1,0 +1,15 @@
+{
+  "name": "@money/core",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./photo-transaction": "./src/photo-transaction.ts",
+    "./telegram": "./src/telegram.ts",
+    "./email-transactions": "./src/email-transactions.ts"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
+  }
+}

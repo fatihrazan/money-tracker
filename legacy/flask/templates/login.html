@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% from '_auth_fields.html' import username_field, password_field %}
+{% block title %}Masuk · Money Tracker{% endblock %}
+{% block content %}
+  <div class="auth">
+    <section class="hero auth-hero">
+      <span class="auth-badge">{{ icon('wallet', 24) }}</span>
+      <h1>Halo lagi!</h1>
+      <p>Masuk untuk melihat catatan uangmu. Akun yang sama bisa dipakai di HP dan laptop.</p>
+    </section>
+    <section class="card">
+      {# Posts to this same URL, so ?next= is kept. data-native: a real page load, since the
+       bars around the page change once logged in. #}
+      <form method="post" class="stack" data-native>
+        {{ username_field(username) }}
+        {{ password_field('password', 'Kata sandi', 'current-password') }}
+        <button class="btn btn-primary btn-block">Masuk</button>
+      </form>
+      <p class="auth-switch">Belum punya akun? <a href="{{ url_for('auth.signup') }}" data-native>Daftar</a></p>
+    </section>
+  </div>
+{% endblock %}

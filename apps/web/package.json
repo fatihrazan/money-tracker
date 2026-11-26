@@ -1,0 +1,31 @@
+{
+  "name": "@money/web",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node ../../scripts/next.mjs dev --hostname 0.0.0.0",
+    "build": "node ../../scripts/next.mjs build",
+    "start": "node ../../scripts/next.mjs start --hostname 0.0.0.0"
+  },
+  "dependencies": {
+    "@daypicker/react": "^10.0.2",
+    "@money/api-client": "*",
+    "@money/core": "*",
+    "@money/database": "*",
+    "@next/env": "16.4.6",
+    "@radix-ui/react-dialog": "^1.3.1",
+    "@radix-ui/react-popover": "^1.3.1",
+    "@radix-ui/react-select": "^2.4.1",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "@tesseract.js-data/ind": "^1.0.0",
+    "google-auth-library": "^10.9.1",
+    "html-to-text": "^10.0.1",
+    "lucide-react": "^0.577.0",
+    "next": "16.4.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tesseract.js": "^7.0.0",
+    "tsx": "^4.23.15"
+  }
+}

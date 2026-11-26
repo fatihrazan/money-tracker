@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% block title %}Kategori · Money Tracker{% endblock %}
+{% block content %}
+  {% set budget_states = {'ok': 'Aman', 'warn': 'Hampir habis', 'over': 'Terlewati'} %}
+  <section class="card budget-card">
+    <div class="section-head">
+      <h2>Anggaran {{ month|month_label }}</h2>
+      <a href="{{ url_for('main.budgets') }}">{{ 'Atur' if budgets else 'Buat' }}</a>
+    </div>
+    {% if budgets %}
+      <div class="budget-total budget-{{ budget_total.state }}">
+        <small>Terpakai dari total anggaran</small>
+        <strong>{{ budget_total.spent|rupiah }} <span>/ {{ budget_total.budget|rupiah }}</span></strong>
+        <div class="budget-bar" role="progressbar" aria-label="Total anggaran terpakai"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ [budget_total.percent, 100]|min }}">
+          <span style="width: {{ [budget_total.percent, 100]|min }}%"></span>
+        </div>
+        <small>{% if budget_total.left >= 0 %}Sisa {{ budget_total.left|rupiah }} untuk bulan ini{% else %}Lewat {{ (-budget_total.left)|rupiah }} dari total anggaran{% endif %}</small>
+      </div>
+      <ul class="budget-list">
+        {% for b in budgets %}
+          <li class="budget-{{ b.state }}">
+            <div class="budget-head">
+              <span class="tx-icon tone-expense">{{ icon(b.name|category_icon, 18) }}</span>
+              <span class="budget-name">
+                <strong>{{ b.name }}</strong>
+                <small class="muted">{{ b.spent|rupiah }} dari {{ b.budget|rupiah }}</small>
+              </span>
+              <span class="budget-state">{{ budget_states[b.state] }}</span>
+            </div>
+            <div class="budget-bar" role="progressbar" aria-label="Anggaran {{ b.name }} terpakai"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ [b.percent, 100]|min }}">
+              <span style="width: {{ [b.percent, 100]|min }}%"></span>
+            </div>
+            <small class="budget-left">
+              {% if b.state == 'over' %}Lewat {{ (-b.left)|rupiah }} · {{ b.percent }}%
+              {% else %}Sisa {{ b.left|rupiah }} · {{ b.percent }}% terpakai{% endif %}
+            </small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty">
+        {{ icon('scale', 32) }}
+        <p>Belum ada anggaran.</p>
+        <p class="muted">Tentukan batas pengeluaran per kategori, lalu pantau sisanya di sini setiap bulan.</p>
+        <a class="btn btn-primary" href="{{ url_for('main.budgets') }}">{{ icon('plus', 18) }}Buat anggaran</a>
+      </div>
+    {% endif %}
+  </section>
+
+  {% for title, items, tone in [('Kategori pengeluaran', expense, 'expense'), ('Kategori pemasukan', income, 'income')] %}
+    <section class="card">
+      <div class="section-head"><h2>{{ title }}</h2></div>
+      {% if items|rejectattr('used')|list %}
+        <p class="swipe-hint muted"><small>Geser kategori yang belum dipakai ke kiri untuk menghapus.</small></p>
+      {% endif %}
+      <ul class="category-list">
+        {% for c in items %}
+          {# Unused categories can be deleted: swiping the row left reveals the button behind it. #}
+          <li {% if not c.used %}class="swipe" data-swipe{% endif %}>
+            <div class="cat-row">
+              <span class="tx-icon tone-{{ tone }}">{{ icon(c.name|category_icon, 18) }}</span>
+              <span class="cat-name">{{ c.name }}<small class="muted">{{ c.used }} transaksi</small></span>
+              {% set sign, color = ('-', 'neg') if tone == 'expense' else ('+', 'pos') %}
+              <span class="amount cat-total {{ color if c.total else 'muted' }}">{{ sign if c.total }}{{ c.total|rupiah }}</span>
+            </div>
+            {% if not c.used %}
+              <form method="post" action="{{ url_for('main.delete_category', category_id=c.id) }}"
+                    data-confirm="Hapus kategori {{ c.name }}?" class="swipe-action">
+                <button aria-label="Hapus {{ c.name }}">{{ icon('trash', 18) }}<span>Hapus</span></button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+
+  <section class="card">
+    <div class="section-head"><h2>Tambah kategori</h2></div>
+    <form method="post" action="{{ url_for('main.create_category') }}" class="row">
+      <label class="field grow"><span>Nama</span><input name="name" required maxlength="50"></label>
+      <label class="field"><span>Jenis</span>
+        <select name="kind">
+          <option value="expense">Pengeluaran</option>
+          <option value="income">Pemasukan</option>
+        </select>
+      </label>
+      <button class="btn btn-primary align-end">{{ icon('plus', 18) }}Tambah</button>
+    </form>
+  </section>
+{% endblock %}

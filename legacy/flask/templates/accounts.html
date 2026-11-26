@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% block title %}Akun · Money Tracker{% endblock %}
+{% block content %}
+  <section class="card">
+    <div class="section-head"><h2>Akun</h2></div>
+    <ul class="account-list">
+      {% for a in active %}
+        <li>
+          <span class="balance-icon" style="{{ a|account_style }}">{{ icon({'bank': 'bank', 'ewallet': 'phone', 'cash': 'cash'}.get(a.type, 'wallet'), 20) }}</span>
+          <div class="account-info">
+            <strong>{{ a.name }}</strong>
+            <span class="muted">{{ ACCOUNT_TYPES[a.type] }} · saldo awal {{ a.initial_balance|rupiah }}</span>
+          </div>
+          <span class="amount {{ 'neg' if a.balance < 0 }}">{{ a.balance|rupiah }}</span>
+          <div class="actions">
+            <a class="btn btn-small" href="{{ url_for('main.reconcile_account', account_id=a.id) }}">{{ icon('scale', 16) }}Cocokkan saldo</a>
+            <a class="btn btn-small" href="{{ url_for('main.edit_account', account_id=a.id) }}">{{ icon('edit', 16) }}Ubah</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><h2>Tambah akun</h2></div>
+    <form method="post" action="{{ url_for('main.create_account') }}" class="stack">
+      <div class="row">
+        <label class="field grow"><span>Nama</span><input name="name" required maxlength="50" placeholder="contoh: OVO"></label>
+        <label class="field"><span>Jenis</span>
+          <select name="type">
+            {% for value, label in ACCOUNT_TYPES.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+      <label class="field"><span>Saldo awal</span>
+        <input name="initial_balance" placeholder="0" autocomplete="off" data-amount>
+        <small class="amount-preview"></small>
+      </label>
+      <button class="btn btn-primary btn-block">{{ icon('plus', 18) }}Tambah</button>
+    </form>
+  </section>
+
+  {% if archived %}
+    <section class="card">
+      <div class="section-head"><h2>Arsip</h2></div>
+      <ul class="account-list">
+        {% for a in archived %}
+          <li class="is-archived">
+            <span class="balance-icon" style="{{ a|account_style }}">{{ icon({'bank': 'bank', 'ewallet': 'phone', 'cash': 'cash'}.get(a.type, 'wallet'), 20) }}</span>
+            <div class="account-info"><strong>{{ a.name }}</strong><span class="muted">{{ ACCOUNT_TYPES[a.type] }}</span></div>
+            <form method="post" action="{{ url_for('main.toggle_archive', account_id=a.id) }}">
+              <button class="btn btn-small">Aktifkan lagi</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+{% endblock %}

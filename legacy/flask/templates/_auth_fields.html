@@ -1,0 +1,26 @@
+{# Shared inputs for the login and signup forms. #}
+{% from '_icons.html' import icon %}
+{% macro username_field(value, hint=false) -%}
+  <label class="field">
+    <span>Nama pengguna</span>
+    <div class="input-icon">
+      {{ icon('user', 18) }}
+      <input name="username" value="{{ value }}" required maxlength="30" autocomplete="username"
+             autocapitalize="none" spellcheck="false" autofocus>
+    </div>
+    {% if hint %}<small class="muted">3–30 karakter: huruf kecil, angka, titik, atau garis bawah.</small>{% endif %}
+  </label>
+{%- endmacro %}
+{% macro password_field(name, label, autocomplete) -%}
+  <label class="field">
+    <span>{{ label }}</span>
+    <div class="input-icon">
+      {{ icon('lock', 18) }}
+      <input type="password" name="{{ name }}" required autocomplete="{{ autocomplete }}"
+             {% if autocomplete == 'new-password' %}minlength="8"{% endif %}>
+      <button type="button" class="reveal" data-reveal aria-label="Tampilkan kata sandi">
+        <span class="reveal-show">{{ icon('eye', 18) }}</span><span class="reveal-hide">{{ icon('eye-off', 18) }}</span>
+      </button>
+    </div>
+  </label>
+{%- endmacro %}

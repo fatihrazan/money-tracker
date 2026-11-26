@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% block content %}
+  {% if needs_setup %}
+    <div class="callout">
+      {{ icon('sparkle', 20) }}
+      <div>
+        <strong>Mulai di sini:</strong> isi saldo awal tiap akun sesuai saldo aslinya sekarang.
+        Setelah itu, saldo dihitung otomatis setiap kamu mencatat transaksi.
+        <a href="{{ url_for('main.accounts') }}">Isi saldo awal →</a>
+      </div>
+    </div>
+  {% endif %}
+
+  <section class="hero">
+    <div class="hero-top">
+      <p class="hero-label">Total uang</p>
+      <span class="hero-month-name">{{ month|month_label }}</span>
+    </div>
+    <p class="hero-total">{{ total|rupiah }}</p>
+    <div class="hero-flow">
+      <span class="flow flow-in">{{ icon('arrow-up', 14) }}<span><small>Pemasukan</small><strong>{{ summary.income|rupiah }}</strong></span></span>
+      <span class="flow flow-out">{{ icon('arrow-down', 14) }}<span><small>Pengeluaran</small><strong>{{ summary.expense|rupiah }}</strong></span></span>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Akun</h2><a href="{{ url_for('main.accounts') }}">Kelola</a></div>
+    <div class="balances">
+      {% for a in balances %}
+        <a class="balance" href="{{ url_for('main.transactions', account=a.id) }}" style="{{ a|account_style }}">
+          <span class="balance-icon">{{ icon({'bank': 'bank', 'ewallet': 'phone', 'cash': 'cash'}.get(a.type, 'wallet'), 18) }}</span>
+          <span class="balance-name">{{ a.name }}</span>
+          <span class="balance-value {{ 'neg' if a.balance < 0 }}">{{ a.balance|rupiah }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><h2>Catat transaksi</h2></div>
+    {% if quick_fills %}
+      <div class="chips" aria-label="Isi cepat">
+        {% for q in quick_fills %}
+          <button type="button" class="chip" data-fill='{{ q|tojson }}'>
+            {{ q.note }} · {{ q.amount|rupiah }}
+          </button>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% with action=url_for('main.create_transaction'), submit_label='Simpan', show_fee=true, autofocus=true %}
+      {% include '_tx_form.html' %}
+    {% endwith %}
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>Transaksi terakhir</h2>
+      <a href="{{ url_for('main.transactions') }}">Lihat semua</a>
+    </div>
+    {% if recent %}
+      {% with txs=recent %}{% include '_tx_list.html' %}{% endwith %}
+    {% else %}
+      <div class="empty">{{ icon('inbox', 32) }}<p>Belum ada transaksi.</p><p class="muted">Catat yang pertama lewat form di atas.</p></div>
+    {% endif %}
+  </section>
+{% endblock %}

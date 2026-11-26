@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% from '_icons.html' import icon %}
+{% block title %}Atur anggaran · Money Tracker{% endblock %}
+{% block content %}
+  <a class="back" href="{{ url_for('main.categories') }}">{{ icon('chev-left', 16) }}Kategori</a>
+  <section class="card">
+    <div class="section-head"><h2>Atur anggaran bulanan</h2></div>
+    <p class="muted">Batas pengeluaran tiap kategori, berlaku setiap bulan. Kosongkan kalau tanpa batas.</p>
+    <form method="post" class="stack">
+      <ul class="budget-form">
+        {% for r in rows %}
+          <li>
+            <span class="tx-icon tone-expense">{{ icon(r.name|category_icon, 18) }}</span>
+            <label class="field">
+              <span>{{ r.name }} <small class="muted">· {{ month|month_label }}: {{ r.spent|rupiah }}</small></span>
+              <div class="amount-wrap">
+                <b aria-hidden="true">Rp</b>
+                <input name="budget-{{ r.id }}" value="{{ form['budget-' ~ r.id] }}" placeholder="Tanpa batas"
+                       autocomplete="off" data-amount>
+              </div>
+              <small class="amount-preview"></small>
+            </label>
+          </li>
+        {% endfor %}
+      </ul>
+      <button class="btn btn-primary btn-block">Simpan anggaran</button>
+    </form>
+  </section>
+{% endblock %}

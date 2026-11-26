@@ -1,0 +1,78 @@
+{# Expense / income / transfer form. Expects: form, accounts, expense_categories,
+   income_categories, action, submit_label; optional: show_fee, autofocus. #}
+{% from '_icons.html' import icon %}
+{% set kind = form.get('kind', 'expense') %}
+<form method="post" action="{{ action }}" id="tx-form" class="stack">
+  <div class="segmented" role="radiogroup" aria-label="Jenis transaksi">
+    {% for k, ic in [('expense', 'arrow-down'), ('income', 'arrow-up'), ('transfer', 'swap')] %}
+      <label class="seg-{{ k }}">
+        <input type="radio" name="kind" value="{{ k }}" {% if kind == k %}checked{% endif %}>
+        <span>{{ icon(ic, 16) }}{{ KIND_LABELS[k] }}</span>
+      </label>
+    {% endfor %}
+  </div>
+
+  <label class="field field-amount">
+    <span>Nominal</span>
+    <div class="amount-wrap">
+      <b aria-hidden="true">Rp</b>
+      <input name="amount" value="{{ form.get('amount', '') }}" placeholder="25rb, 25.000, 1,5jt"
+             autocomplete="off" inputmode="text" required data-amount {% if autofocus %}autofocus{% endif %}>
+    </div>
+    <small class="amount-preview"></small>
+  </label>
+
+  <div class="row">
+    <label class="field">
+      <span data-account-label>{{ 'Dari akun' if kind == 'transfer' else 'Akun' }}</span>
+      <select name="account_id" required>
+        {% for a in accounts %}
+          <option value="{{ a.id }}" {% if form.get('account_id')|string == a.id|string %}selected{% endif %}>{{ a.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label class="field" data-kinds="transfer" {% if kind != 'transfer' %}hidden{% endif %}>
+      <span>Ke akun</span>
+      <select name="to_account_id" {% if kind != 'transfer' %}disabled{% endif %}>
+        <option value="">Pilih…</option>
+        {% for a in accounts %}
+          <option value="{{ a.id }}" {% if form.get('to_account_id')|string == a.id|string %}selected{% endif %}>{{ a.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    {% for k, cats in [('expense', expense_categories), ('income', income_categories)] %}
+      <label class="field" data-kinds="{{ k }}" {% if kind != k %}hidden{% endif %}>
+        <span>Kategori</span>
+        <select name="category_id" {% if kind != k %}disabled{% endif %}>
+          {% for c in cats %}
+            <option value="{{ c.id }}" {% if form.get('category_id')|string == c.id|string %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    {% endfor %}
+  </div>
+
+  {% if show_fee %}
+    <label class="field" data-kinds="transfer" {% if kind != 'transfer' %}hidden{% endif %}>
+      <span>Biaya admin <small class="muted">(opsional, dicatat sebagai pengeluaran)</small></span>
+      <input name="fee" value="{{ form.get('fee', '') }}" placeholder="contoh: 1rb" autocomplete="off"
+             data-amount {% if kind != 'transfer' %}disabled{% endif %}>
+      <small class="amount-preview"></small>
+    </label>
+  {% endif %}
+
+  <div class="row">
+    <label class="field grow">
+      <span>Catatan</span>
+      <input name="note" value="{{ form.get('note', '') }}" maxlength="200" placeholder="contoh: Makan siang">
+    </label>
+    <label class="field">
+      <span>Tanggal</span>
+      <input type="date" name="date" value="{{ form.get('date', '') }}" required>
+    </label>
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-block">{{ submit_label }}</button>
+</form>
